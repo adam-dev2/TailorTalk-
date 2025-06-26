@@ -33,7 +33,7 @@ if user_input:
 
     try:
         response = requests.post(
-            "https://tailortalk-qbst.onrender.comchat",
+            "https://tailortalk-qbst.onrender.com/chat",
             json={
                 "user_input": user_input,
                 "token": st.session_state.token
