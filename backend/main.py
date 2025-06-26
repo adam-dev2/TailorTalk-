@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse, JSONResponse
 from pydantic import BaseModel
-from backend.agent import run_agent
+from agent import run_agent
 from google_auth_oauthlib.flow import Flow
 from google.oauth2.credentials import Credentials
 from fastapi.responses import RedirectResponse 
@@ -36,9 +36,9 @@ def root():
 @app.get("/login")
 def login():
     flow = Flow.from_client_secrets_file(
-        "backend/credentials.json",
+        "credentials.json",
         scopes=["https://www.googleapis.com/auth/calendar"],
-        redirect_uri="http://localhost:8000/oauth2callback" 
+        redirect_uri="https://tailortalk-qbst.onrender.com/oauth2callback" 
     )
     auth_url, _ = flow.authorization_url(
         prompt="consent",
@@ -51,9 +51,9 @@ def login():
 @app.get("/oauth2callback")
 def oauth2callback(request: Request):
     flow = Flow.from_client_secrets_file(
-        "backend/credentials.json",
+        "credentials.json",
         scopes=["https://www.googleapis.com/auth/calendar"],
-        redirect_uri="http://localhost:8000/oauth2callback"
+        redirect_uri="https://tailortalk-qbst.onrender.com/oauth2callback"
     )
     flow.fetch_token(authorization_response=str(request.url))
 

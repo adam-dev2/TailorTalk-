@@ -1,5 +1,5 @@
 import google.generativeai as genai
-from backend.calendar_utils import check_availability, book_meeting
+from calendar_utils import check_availability, book_meeting
 from datetime import datetime, timedelta
 import json
 from dateutil.parser import isoparse
