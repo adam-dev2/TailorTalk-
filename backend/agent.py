@@ -1,5 +1,5 @@
 import google.generativeai as genai
-from calendar_utils import check_availability, book_meeting
+from backend.calendar_utils import check_availability, book_meeting
 from datetime import datetime, timedelta
 import json
 from dateutil.parser import isoparse
@@ -43,7 +43,7 @@ User input: "{user_input}"
 
 
 
-def run_agent(user_input):
+def run_agent(user_input, token):
     user_input_lower = user_input.lower()
 
     if "availability" in user_input_lower or "free" in user_input_lower:
@@ -59,28 +59,25 @@ def run_agent(user_input):
             ist = pytz.timezone("Asia/Kolkata")
 
             start = isoparse(meeting_info["start_time"])
-            start = start.replace(tzinfo=None)  
-            start = ist.localize(start)         
+            start = start.replace(tzinfo=None)
+            start = ist.localize(start)
 
             duration = meeting_info.get("duration", 30)
             end = start + timedelta(minutes=duration)
-
             now = datetime.now(ist)
 
             if start < now:
                 return "❌ Cannot schedule in the past. Please choose a future time."
 
-            conflict_msg = check_availability(start.isoformat(), end.isoformat())
+            conflict_msg = check_availability(start.isoformat(), end.isoformat(), token)
             if "❌" in conflict_msg:
                 return conflict_msg
-
-            print("🕒 Requested start:", start.isoformat())
-            print("🕒 Current time:", now.isoformat())
 
             return book_meeting(
                 start.isoformat(),
                 end.isoformat(),
-                summary=meeting_info.get("summary", "TailorTalk Meeting")
+                summary=meeting_info.get("summary", "TailorTalk Meeting"),
+                token=token
             )
 
         except Exception as e:
@@ -89,4 +86,5 @@ def run_agent(user_input):
 
     else:
         return "🤖 Please tell me when you'd like the meeting or check availability."
+
 

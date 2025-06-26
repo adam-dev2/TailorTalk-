@@ -5,35 +5,27 @@ import pickle
 from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
+from google.oauth2.credentials import Credentials
 
 SCOPES = ["https://www.googleapis.com/auth/calendar"]
 
-def get_calendar_service():
-    creds = None
-    token_path = "token.pickle"
-
-    if os.path.exists(token_path):
-        with open(token_path, "rb") as token:
-            creds = pickle.load(token)
-
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file(
-                "credentials.json", SCOPES
-            )
-            creds = flow.run_local_server(port=8080)
-
-        with open(token_path, "wb") as token:
-            pickle.dump(creds, token)
+def get_calendar_service(token: dict):
+    creds = Credentials(
+        token=token["token"],
+        refresh_token=token["refresh_token"],
+        token_uri=token["token_uri"],
+        client_id=token["client_id"],
+        client_secret=token["client_secret"],
+        scopes=token["scopes"],
+    )
 
     return build("calendar", "v3", credentials=creds)
 
 
-def check_availability(start_time, end_time):
+
+def check_availability(start_time, end_time, token):
     try:
-        service = get_calendar_service()
+        service = get_calendar_service(token)   
 
         tz = pytz.timezone("Asia/Kolkata")
         start_dt = datetime.datetime.fromisoformat(start_time).astimezone(tz)
@@ -72,9 +64,9 @@ def check_availability(start_time, end_time):
 
 
 
-def book_meeting(start_time, end_time, summary="TailorTalk Meeting"):
+def book_meeting(start_time, end_time, summary="TailorTalk Meeting", token=None):
     try:
-        service = get_calendar_service()
+        service = get_calendar_service(token)
 
         calendar_list = service.calendarList().get(calendarId='primary').execute()
         print("📆 Booking on calendar:", calendar_list.get('summary'))
