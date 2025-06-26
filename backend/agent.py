@@ -11,12 +11,20 @@ model = genai.GenerativeModel("gemini-1.5-flash")
 
 def extract_meeting_info(user_input):
     prompt = f"""
-Extract meeting details from this input. Reply ONLY in JSON with these fields:
-- start_time: ISO 8601 datetime
-- duration: integer (minutes, default to 30)
-- summary: short text (optional)
+You're a smart meeting scheduler. Extract details from the user's input.
 
-Input: "{user_input}"
+📌 Context:
+- Today's date is **{datetime.now().strftime('%Y-%m-%d')}** (Asia/Kolkata).
+- Assume **Asia/Kolkata** timezone.
+- Do **NOT hallucinate** extra fields or adjust logic yourself.
+- "Tomorrow" means { (datetime.now() + timedelta(days=1)).strftime('%Y-%m-%d') }
+
+🎯 Respond ONLY in raw JSON with:
+- start_time: ISO 8601 datetime (e.g., 2025-06-27T10:00:00+05:30)
+- duration: integer (in minutes, default to 30)
+- summary: short description (optional)
+
+User input: "{user_input}"
 """
 
     try:
@@ -33,6 +41,8 @@ Input: "{user_input}"
         return None
 
 
+
+
 def run_agent(user_input):
     user_input_lower = user_input.lower()
 
@@ -46,20 +56,27 @@ def run_agent(user_input):
             return "❌ I couldn’t understand the meeting time. Can you rephrase it?"
 
         try:
-            
-            start = isoparse(meeting_info["start_time"]).astimezone(pytz.timezone("Asia/Kolkata"))
+            ist = pytz.timezone("Asia/Kolkata")
+
+            start = isoparse(meeting_info["start_time"])
+            start = start.replace(tzinfo=None)  
+            start = ist.localize(start)         
+
             duration = meeting_info.get("duration", 30)
             end = start + timedelta(minutes=duration)
 
-            start_str = start.isoformat()
-            end_str = end.isoformat()
+            now = datetime.now(ist)
 
-            # ✅ CHECK FOR CONFLICTING EVENTS BEFORE BOOKING
+            if start < now:
+                return "❌ Cannot schedule in the past. Please choose a future time."
+
             conflict_msg = check_availability(start.isoformat(), end.isoformat())
             if "❌" in conflict_msg:
                 return conflict_msg
 
-            # ✅ Slot is free, proceed to book
+            print("🕒 Requested start:", start.isoformat())
+            print("🕒 Current time:", now.isoformat())
+
             return book_meeting(
                 start.isoformat(),
                 end.isoformat(),
@@ -72,3 +89,4 @@ def run_agent(user_input):
 
     else:
         return "🤖 Please tell me when you'd like the meeting or check availability."
+

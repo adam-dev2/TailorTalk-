@@ -1,4 +1,5 @@
 import datetime
+import pytz
 import os
 import pickle
 from google.auth.transport.requests import Request
@@ -29,24 +30,45 @@ def get_calendar_service():
 
     return build("calendar", "v3", credentials=creds)
 
+
 def check_availability(start_time, end_time):
-    service = get_calendar_service()
+    try:
+        service = get_calendar_service()
 
-    events_result = service.events().list(
-        calendarId="primary",
-        timeMin=start_time,
-        timeMax=end_time,
-        singleEvents=True,
-        orderBy="startTime"
-    ).execute()
+        tz = pytz.timezone("Asia/Kolkata")
+        start_dt = datetime.datetime.fromisoformat(start_time).astimezone(tz)
+        end_dt = datetime.datetime.fromisoformat(end_time).astimezone(tz)
 
-    events = events_result.get("items", [])
+        if start_dt >= end_dt:
+            return "❌ Invalid time range. Start time must be before end time."
 
-    if events:
-        return f"❌ You're busy during that time. {len(events)} event(s) already scheduled."
-    else:
-        return "✅ You're free during that time!"
+        now = datetime.datetime.now(tz)
+        if start_dt < now:
+            return "❌ Cannot schedule in the past. Please choose a future time."
 
+        start_iso = start_dt.isoformat()
+        end_iso = end_dt.isoformat()
+
+        events_result = service.events().list(
+            calendarId="primary",
+            timeMin=start_iso,
+            timeMax=end_iso,
+            singleEvents=True,
+            orderBy="startTime"
+        ).execute()
+
+        events = events_result.get("items", [])
+
+        if events:
+            conflict_titles = [e.get("summary", "No title") for e in events]
+            conflicts = "\n".join(f"- {t}" for t in conflict_titles)
+            return f"❌ You're busy during that time. Event(s) already scheduled:\n{conflicts}"
+        else:
+            return "✅ You're free during that time!"
+
+    except Exception as e:
+        print("❌ [Availability Error]", e)
+        return "❌ Internal error while checking availability."
 
 
 

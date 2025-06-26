@@ -15,6 +15,10 @@ app.add_middleware(
 class Message(BaseModel):
     user_input: str
 
+@app.get("/")
+def root():
+    return {"message": "Welcome to TailorTalk API 🎉"}  
+
 @app.post("/chat")
 def chat_with_agent(message: Message):
     reply = run_agent(message.user_input)
