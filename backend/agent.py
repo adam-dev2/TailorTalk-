@@ -11,25 +11,30 @@ model = genai.GenerativeModel("gemini-1.5-flash")
 
 def extract_meeting_info(user_input):
     prompt = f"""
-You are a helpful assistant that extracts meeting details from casual, human input.
+You're a smart AI assistant helping schedule meetings.
 
-📅 Context:
-- Assume the user is in the **Asia/Kolkata** timezone.
-- Today's date is **{datetime.now().strftime('%Y-%m-%d')}**
-- Interpret phrases like "tomorrow", "next Friday", "10 am" etc., relative to today.
-- DO NOT make up values or hallucinate.
+👤 Users speak casually and like a friend (e.g., "set something up tomorrow at like 5", "yo book call next Mon").
 
 🎯 Your job:
-Understand the user's intent and return ONLY valid JSON with these fields:
-- **start_time**: Full ISO 8601 datetime string (e.g., "2025-06-27T10:00:00+05:30")
-- **duration**: Integer in minutes (optional, default to 30)
-- **summary**: Short description (optional)
+1. Parse their intent — even if informal, broken, or slang.
+2. Assume IST (Asia/Kolkata timezone).
+3. Treat today as {datetime.now().strftime('%Y-%m-%d')}.
+4. "Tomorrow" means {(datetime.now() + timedelta(days=1)).strftime('%Y-%m-%d')}.
+5. If time is vague like "evening" or "afternoon", make a **reasonable guess** (e.g., evening → 6:00 PM).
 
-Example user input: "{user_input}"
+🚫 DO NOT:
+- Explain anything
+- Say "I'm not sure"
+- Add markdown
+- Hallucinate keys
 
-🔁 Respond ONLY with JSON. No explanations, markdown, or formatting.
+✅ Respond ONLY in raw JSON with:
+- start_time (ISO 8601 datetime)
+- duration (minutes, default to 30)
+- summary (optional)
+
+User input: "{user_input}"
 """
-
     try:
         response = model.generate_content(prompt)
         content = response.text.strip()
