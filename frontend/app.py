@@ -13,7 +13,7 @@ if user_input:
     st.session_state.chat_history.append(("user", user_input))
 
     response = requests.post(
-        "http://localhost:8000/chat", json={"user_input": user_input}
+        "https://tailortalk-qbst.onrender.com/chat", json={"user_input": user_input}
     )
 
     agent_reply = response.json().get("reply")
