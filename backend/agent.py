@@ -11,20 +11,23 @@ model = genai.GenerativeModel("gemini-1.5-flash")
 
 def extract_meeting_info(user_input):
     prompt = f"""
-You're a smart meeting scheduler. Extract details from the user's input.
+You are a helpful assistant that extracts meeting details from casual, human input.
 
-📌 Context:
-- Today's date is **{datetime.now().strftime('%Y-%m-%d')}** (Asia/Kolkata).
-- Assume **Asia/Kolkata** timezone.
-- Do **NOT hallucinate** extra fields or adjust logic yourself.
-- "Tomorrow" means { (datetime.now() + timedelta(days=1)).strftime('%Y-%m-%d') }
+📅 Context:
+- Assume the user is in the **Asia/Kolkata** timezone.
+- Today's date is **{datetime.now().strftime('%Y-%m-%d')}**
+- Interpret phrases like "tomorrow", "next Friday", "10 am" etc., relative to today.
+- DO NOT make up values or hallucinate.
 
-🎯 Respond ONLY in raw JSON with:
-- start_time: ISO 8601 datetime (e.g., 2025-06-27T10:00:00+05:30)
-- duration: integer (in minutes, default to 30)
-- summary: short description (optional)
+🎯 Your job:
+Understand the user's intent and return ONLY valid JSON with these fields:
+- **start_time**: Full ISO 8601 datetime string (e.g., "2025-06-27T10:00:00+05:30")
+- **duration**: Integer in minutes (optional, default to 30)
+- **summary**: Short description (optional)
 
-User input: "{user_input}"
+Example user input: "{user_input}"
+
+🔁 Respond ONLY with JSON. No explanations, markdown, or formatting.
 """
 
     try:
@@ -39,6 +42,7 @@ User input: "{user_input}"
     except Exception as e:
         print("[Gemini error]", e)
         return None
+
 
 
 
