@@ -15,9 +15,9 @@ app.add_middleware(
 class Message(BaseModel):
     user_input: str
 
-@app.get("/")
-def root():
-    return {"message": "Welcome to TailorTalk API 🎉"}  
+@app.head("/")
+def head():
+    return Response(status_code=200)
 
 @app.post("/chat")
 def chat_with_agent(message: Message):
