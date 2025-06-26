@@ -9,6 +9,7 @@ from google.oauth2.credentials import Credentials
 
 SCOPES = ["https://www.googleapis.com/auth/calendar"]
 
+
 def get_calendar_service(token: dict):
     creds = Credentials(
         token=token["token"],

@@ -53,7 +53,7 @@ def oauth2callback(request: Request):
     flow = Flow.from_client_secrets_file(
         "credentials.json",
         scopes=["https://www.googleapis.com/auth/calendar"],
-        redirect_uri="https://tailortalk-qbst.onrender.com/oauth2callback"
+        redirect_uri="https://tailortalk-qbst.onrender.com//oauth2callback"
     )
     flow.fetch_token(authorization_response=str(request.url))
 
