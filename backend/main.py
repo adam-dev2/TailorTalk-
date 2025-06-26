@@ -68,7 +68,7 @@ def oauth2callback(request: Request):
     }
 
     token_str = urllib.parse.quote(json.dumps(token_data))
-    redirect_url = f"http://localhost:8502/?token={token_str}"
+    redirect_url = f"https://tailortalkai.streamlit.app/?token={token_str}"
 
     return RedirectResponse(url=redirect_url)
 
